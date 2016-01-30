@@ -373,6 +373,12 @@ struct usb_xpad {
 static int xpad_init_input(struct usb_xpad *xpad);
 static void xpad_deinit_input(struct usb_xpad *xpad);
 
+static __s16 XPAD_DEADZONE = 8000;
+
+static __s16 xpad_apply_deadzone(__s16 value) {
+	return value < -XPAD_DEADZONE || value > XPAD_DEADZONE ? value : 0;
+}
+
 /*
  *	xpad_process_packet
  *
@@ -389,15 +395,15 @@ static void xpad_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned char *d
 	if (!(xpad->mapping & MAP_STICKS_TO_NULL)) {
 		/* left stick */
 		input_report_abs(dev, ABS_X,
-				 (__s16) le16_to_cpup((__le16 *)(data + 12)));
+				 xpad_apply_deadzone((__s16) le16_to_cpup((__le16 *)(data + 12))));
 		input_report_abs(dev, ABS_Y,
-				 ~(__s16) le16_to_cpup((__le16 *)(data + 14)));
+				 xpad_apply_deadzone(~(__s16) le16_to_cpup((__le16 *)(data + 14))));
 
 		/* right stick */
 		input_report_abs(dev, ABS_RX,
-				 (__s16) le16_to_cpup((__le16 *)(data + 16)));
+				 xpad_apply_deadzone((__s16) le16_to_cpup((__le16 *)(data + 16))));
 		input_report_abs(dev, ABS_RY,
-				 ~(__s16) le16_to_cpup((__le16 *)(data + 18)));
+				 xpad_apply_deadzone(~(__s16) le16_to_cpup((__le16 *)(data + 18))));
 	}
 
 	/* triggers left/right */
@@ -498,15 +504,15 @@ static void xpad360_process_packet(struct usb_xpad *xpad, struct input_dev *dev,
 	if (!(xpad->mapping & MAP_STICKS_TO_NULL)) {
 		/* left stick */
 		input_report_abs(dev, ABS_X,
-				 (__s16) le16_to_cpup((__le16 *)(data + 6)));
+				 xpad_apply_deadzone((__s16) le16_to_cpup((__le16 *)(data + 6))));
 		input_report_abs(dev, ABS_Y,
-				 ~(__s16) le16_to_cpup((__le16 *)(data + 8)));
+				 xpad_apply_deadzone(~(__s16) le16_to_cpup((__le16 *)(data + 8))));
 
 		/* right stick */
 		input_report_abs(dev, ABS_RX,
-				 (__s16) le16_to_cpup((__le16 *)(data + 10)));
+				 xpad_apply_deadzone((__s16) le16_to_cpup((__le16 *)(data + 10))));
 		input_report_abs(dev, ABS_RY,
-				 ~(__s16) le16_to_cpup((__le16 *)(data + 12)));
+				 xpad_apply_deadzone(~(__s16) le16_to_cpup((__le16 *)(data + 12))));
 	}
 
 	/* triggers left/right */
